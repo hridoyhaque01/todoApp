@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 // useEffect
 import classes from "./styles/Todo.module.css";
 
+// get todo local data
+
 function getLocalData() {
   const lists = localStorage.getItem("mystorage");
 
@@ -10,7 +12,10 @@ function getLocalData() {
   }
   return [];
 }
-function getDoneLocalData() {
+
+// get completed todo local data
+
+function getCompletedLocalData() {
   const lists = localStorage.getItem("donestorage");
 
   if (lists) {
@@ -24,24 +29,36 @@ function Todo() {
   const [toggleButton, setToggleButton] = useState(false);
   const [editedIndex, setEditedIndex] = useState("");
   const [items, setItems] = useState(getLocalData());
-  const [doneItems, setDoneItems] = useState(getDoneLocalData());
+  const [doneItems, setDoneItems] = useState(getCompletedLocalData());
 
-  function handleClick() {
+  // add todo items function
+
+  function addItems() {
     if (!inputData) {
       alert("please enter value !");
     } else if (inputData && toggleButton) {
       setItems(
         items.map((currentEl) => {
+          const names = items.find((findEl) => findEl.name === inputData);
+          if (names) {
+            return currentEl;
+          }
           if (currentEl.id === editedIndex) {
             return { ...currentEl, name: inputData };
           }
           return currentEl;
         })
       );
+
       setInputData("");
       setEditedIndex("null");
       setToggleButton(false);
     } else {
+      const names = items.find((currentEl) => currentEl.name === inputData);
+      if (names) {
+        setInputData("");
+        return;
+      }
       const newItems = {
         id: new Date().getTime().toString(),
         name: inputData,
@@ -52,7 +69,7 @@ function Todo() {
     }
   }
 
-  // edit items
+  // edit items function
 
   const editItem = (index) => {
     const editedValue = items.find((currentEl) => currentEl.id === index);
@@ -68,6 +85,8 @@ function Todo() {
     setItems(updatedItems);
   };
 
+  // add values into new storage function
+
   const changeStorage = (index) => {
     const changeValue = items.find((currentEl) => currentEl.id === index);
     const newData = {
@@ -79,13 +98,16 @@ function Todo() {
     setItems(updatedItems);
   };
 
-  const deleteDoneItem = (index) => {
-    console.log(index);
+  // delete done items function
+
+  const deleteCompletedItem = (index) => {
     const updatedValue = doneItems.filter(
       (currentEl) => currentEl.id !== index
     );
     setDoneItems(updatedValue);
   };
+
+  // useeffect
 
   useEffect(() => {
     localStorage.setItem("mystorage", JSON.stringify(items));
@@ -95,22 +117,27 @@ function Todo() {
   return (
     <div className={classes.todoBg}>
       <div className={classes.content}>
+        {/* todo input form and lists  */}
+        <div className={classes.inputField}>
+          <input
+            type="text"
+            placeholder="Enter your Todo..."
+            value={inputData}
+            onChange={(e) => setInputData(e.target.value)}
+          />
+          {toggleButton ? (
+            <i className="bx bx-edit-alt" onClick={addItems} />
+          ) : (
+            <i className="bx bx-plus" onClick={addItems} />
+          )}
+        </div>
         <div className={classes.mainDiv}>
-          <div className={classes.inputField}>
-            <input
-              type="text"
-              placeholder="Enter your todo.."
-              value={inputData}
-              onChange={(e) => setInputData(e.target.value)}
-            />
-            {toggleButton ? (
-              <i className="bx bx-edit-alt" onClick={handleClick} />
-            ) : (
-              <i className="bx bx-plus" onClick={handleClick} />
-            )}
-          </div>
           <div className={classes.todoLists}>
-            <h4>{items.length === 0 ? "There is no work left🙂" : " "}</h4>
+            <h4>
+              {items.length === 0
+                ? "There is no work left🙂"
+                : "You need to complete these tasks☹"}
+            </h4>
             <ul className={classes.lists}>
               {items.map((currentEl) => (
                 <li className={classes.items} key={currentEl.id}>
@@ -118,8 +145,9 @@ function Todo() {
                     <input
                       type="checkbox"
                       onClick={() => changeStorage(currentEl.id)}
+                      id={currentEl.name}
                     />
-                    <span>{currentEl.name}</span>
+                    <label htmlFor={currentEl.name}>{currentEl.name}</label>
                   </div>
                   <div className={classes.modify}>
                     <i
@@ -136,13 +164,13 @@ function Todo() {
               ))}
             </ul>
           </div>
-        </div>
-        {items.length > 0 ? (
           <div className={`${classes.todoLists} ${classes.complete}`}>
             <h4>
-              {doneItems.length === 0
-                ? "you have to finished your work!🙂"
-                : " "}
+              {items.length === 0 && doneItems.length === 0
+                ? "no task found🙂"
+                : doneItems.length > 0
+                ? "You have completed these tasks😀"
+                : "you need to finished your task☹"}
             </h4>
             <ul className={classes.lists}>
               {doneItems.map((currentEl) => (
@@ -151,16 +179,16 @@ function Todo() {
                   <div className={classes.modify}>
                     <i
                       className="bx bxs-trash"
-                      onClick={() => deleteDoneItem(currentEl.id)}
+                      onClick={() => deleteCompletedItem(currentEl.id)}
                     />
                   </div>
                 </li>
               ))}
             </ul>
           </div>
-        ) : (
-          ""
-        )}
+        </div>
+
+        {/* todo done lists  */}
       </div>
     </div>
   );

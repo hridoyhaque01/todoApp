@@ -27,6 +27,7 @@
     "jest": true
   },
   "rules": {
+    "no-nested-ternary": 0,
     "no-unused-vars": 0,
     "no-alert": 0,
     "react/react-in-jsx-scope": 0,
